@@ -1,0 +1,523 @@
+<title>HidroSense</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0b1512">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: app de una columna — login primero; luego Inicio / Historial / Ajustes con barra inferior */
+:root{
+  --bg:#edf3f0; --surface:#ffffff; --surface2:#e2ebe6; --line:#cddbd4;
+  --fg:#12221c; --mut:#5a7168;
+  --leaf:#24995a; --water:#1b78d0; --teal:#0f8b8d;
+  --ok:#24995a; --warn:#c47d12; --bad:#cc3346; --onAccent:#ffffff;
+  --f-display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-data:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --r:18px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0a1411; --surface:#111f1a; --surface2:#172a23; --line:#22382f;
+  --fg:#e3f0ea; --mut:#88a499; --leaf:#3cc275; --water:#49a6ff; --teal:#2cc4c6;
+  --ok:#3cc275; --warn:#f0a53a; --bad:#ff5f71; --onAccent:#05110c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0a1411; --surface:#111f1a; --surface2:#172a23; --line:#22382f;
+  --fg:#e3f0ea; --mut:#88a499; --leaf:#3cc275; --water:#49a6ff; --teal:#2cc4c6;
+  --ok:#3cc275; --warn:#f0a53a; --bad:#ff5f71; --onAccent:#05110c; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{min-height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px calc(96px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance}
+.eyebrow{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);font-weight:700}
+.num{font-family:var(--f-data);font-variant-numeric:tabular-nums}
+.mut{color:var(--mut)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0}
+.stack{display:flex;flex-direction:column;gap:12px}
+.btn{border:1px solid var(--line);background:var(--surface2);color:var(--fg);font:700 14px var(--f-body);padding:11px 15px;border-radius:12px;cursor:pointer}
+.btn.pri{background:var(--leaf);border-color:transparent;color:var(--onAccent)}
+.btn.bad{background:color-mix(in srgb,var(--bad) 14%,var(--surface2))}
+.btn:focus-visible,.ctl:focus-visible,.seg button:focus-visible,.nav button:focus-visible,.tg:focus-visible{outline:3px solid var(--water);outline-offset:2px}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+input[type=text],input[type=password],input[type=number]{width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);color:var(--fg);font:16px var(--f-body)}
+label.f{font-size:13px;color:var(--mut);font-weight:500}
+/* marca */
+.brand{display:flex;align-items:center;gap:10px}
+.brand h1{font-size:23px;font-weight:800;letter-spacing:-.015em}
+.brand small{display:block;font:500 12px var(--f-body);color:var(--mut);letter-spacing:0}
+/* login */
+.login{max-width:420px;margin:8vh auto 0}
+.login .panel{padding:22px;display:flex;flex-direction:column;gap:12px}
+.lock{width:52px;height:52px;border-radius:16px;background:var(--surface2);display:grid;place-items:center;font-size:24px}
+/* top */
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+select{padding:7px 10px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:700 13px var(--f-body);max-width:190px}
+.conn{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:99px;background:var(--surface);border:1px solid var(--line);font-size:12.5px;font-weight:700;white-space:nowrap}
+.conn i{width:8px;height:8px;border-radius:50%;background:var(--bad)}
+.conn.live i{background:var(--ok);box-shadow:0 0 0 4px color-mix(in srgb,var(--ok) 25%,transparent)}
+/* hero */
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding:4px 6px 10px}
+.big b{font:800 50px/1 var(--f-display);display:block;letter-spacing:-.02em}
+.big span{font-size:13px;color:var(--mut)}
+.stag{background:var(--surface2);padding:7px 12px;border-radius:99px;font-size:13px;font-weight:700;white-space:nowrap}
+.stag.w{background:var(--water);color:#fff}.stag.r{background:var(--bad);color:#fff}.stag.y{background:var(--warn);color:#fff}
+.scene{position:relative;border-radius:14px;overflow:hidden;background:linear-gradient(#5aa9d6,#9fd3e8 62%,#bfe3c8);transition:background 1.2s;max-height:340px}
+.scene.night{background:linear-gradient(#0a1530,#1b3358 60%,#22433a)}
+.scene.rain{background:linear-gradient(#56636e,#8394a0 60%,#7d9b8a)}
+.scene svg{display:block;width:100%;height:auto;max-height:340px}
+#plant{transform-origin:150px 168px;transition:transform 1.6s cubic-bezier(.3,1.5,.5,1)}
+.leaf,#flower,#soilTop{transition:fill 1.5s}
+.drop{opacity:0}
+.pumping .drop{animation:fall .7s linear infinite}
+.pumping .drop:nth-child(2){animation-delay:.18s}.pumping .drop:nth-child(3){animation-delay:.36s}.pumping .drop:nth-child(4){animation-delay:.54s}
+@keyframes fall{0%{opacity:0;transform:translateY(0)}15%{opacity:1}100%{opacity:0;transform:translateY(48px)}}
+#rainG{opacity:0;transition:opacity 1s}.rain #rainG{opacity:1}
+.rd{animation:rainf .9s linear infinite}.rd:nth-child(odd){animation-delay:.45s}
+@keyframes rainf{0%{transform:translateY(-8px);opacity:0}20%{opacity:.9}100%{transform:translateY(118px);opacity:0}}
+#sun{transition:opacity 1s}.rain #sun,.night #sun{opacity:0}
+#moon{opacity:0;transition:opacity 1s}.night #moon{opacity:1}
+.ray{transform-origin:250px 40px;animation:spin 20s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.sway{animation:sway 4.5s ease-in-out infinite;transform-origin:150px 168px}@keyframes sway{50%{transform:rotate(2deg)}}
+.ripple{opacity:0;transform-origin:150px 168px}.pumping .ripple{animation:rip 1s ease-out infinite}
+@keyframes rip{0%{opacity:.8;transform:scale(.3)}100%{opacity:0;transform:scale(1.4)}}
+.why{display:flex;gap:10px;align-items:flex-start;margin:12px 6px 4px;font-size:15px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--ok);flex:none;margin-top:6px}
+.dot.w{background:var(--water);animation:pul 1s infinite alternate}.dot.y{background:var(--warn)}.dot.r{background:var(--bad)}
+@keyframes pul{to{transform:scale(1.6)}}
+/* avisos */
+.banner{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-radius:var(--r);padding:14px 16px;border:1px solid}
+.banner.bad{background:color-mix(in srgb,var(--bad) 12%,var(--surface));border-color:color-mix(in srgb,var(--bad) 45%,transparent)}
+.banner.warn{background:color-mix(in srgb,var(--warn) 12%,var(--surface));border-color:color-mix(in srgb,var(--warn) 45%,transparent)}
+.banner b{display:block;font-family:var(--f-display);font-size:16px}
+.banner p{margin:2px 0 0;color:var(--mut);font-size:13.5px}
+/* inteligencia */
+.ai{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.ai div{background:var(--surface2);border-radius:13px;padding:12px;min-width:0}
+.ai b{display:block;font:700 19px var(--f-data);font-variant-numeric:tabular-nums}
+.ai span{font-size:12.5px;color:var(--mut)}
+.aiTxt{margin:12px 0 0;font-size:14px}
+.aiTag{display:inline-flex;gap:6px;align-items:center;font-size:12px;font-weight:700;color:var(--teal);letter-spacing:.06em;text-transform:uppercase}
+/* mando */
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--surface2);border-radius:13px;padding:4px;gap:4px}
+.seg button{border:0;background:transparent;color:var(--mut);font:700 15px var(--f-body);padding:11px;border-radius:10px;cursor:pointer}
+.seg button.on{background:var(--leaf);color:var(--onAccent)}
+.seg button[disabled]{cursor:not-allowed;opacity:.6}
+.modeTxt{margin:10px 2px 12px;color:var(--mut);font-size:13.5px}
+.ctls{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ctl{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;border:1px solid var(--line);background:var(--surface2);color:var(--fg);padding:13px 14px;border-radius:14px;cursor:pointer;font:inherit;min-width:0;transition:transform .1s}
+.ctl b{font:700 15.5px var(--f-body)}.ctl small{color:var(--mut);font-size:12.5px;line-height:1.35}
+.ctl.pri{background:var(--water);border-color:transparent;color:#fff}.ctl.pri small{color:#ffffffd9}
+.ctl.stop{background:color-mix(in srgb,var(--bad) 16%,var(--surface2))}
+.ctl:active{transform:scale(.97)}
+.ctl[disabled]{cursor:not-allowed;background:var(--surface2);color:var(--mut);border-style:dashed}
+.ctl[disabled] b::before{content:"🔒 "}.ctl[disabled] small{color:var(--mut)}
+/* sensores */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:15px;padding:12px 13px;min-width:0}
+.tile b{display:block;font:700 22px var(--f-data);font-variant-numeric:tabular-nums}
+.tile span{color:var(--mut);font-size:12.5px}
+.bar{height:5px;border-radius:3px;background:var(--surface2);margin-top:8px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--leaf);transition:width 1s}
+/* historial */
+.tabs{display:flex;gap:6px}
+.tabs button{border:1px solid var(--line);background:transparent;color:var(--mut);font:700 13px var(--f-body);padding:6px 12px;border-radius:99px;cursor:pointer}
+.tabs button.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+canvas{width:100%;height:180px;display:block}
+.list{display:flex;flex-direction:column}
+.row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:14px;align-items:baseline}
+.row:first-child{border-top:0}.row small{color:var(--mut);white-space:nowrap}
+.empty{color:var(--mut);font-size:13.5px;padding:6px 0}
+/* ajustes */
+.set label{display:flex;justify-content:space-between;font-size:14px;margin-bottom:5px;gap:10px}
+.set label b{font-family:var(--f-data);color:var(--leaf);white-space:nowrap}
+.set small{display:block;color:var(--mut);font-size:12.5px;margin-top:3px}
+input[type=range]{width:100%;accent-color:var(--leaf)}
+.sw{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-top:12px;border-top:1px solid var(--line);font-size:14px}
+.sw small{display:block;color:var(--mut);font-size:12.5px}
+.tg{width:48px;height:28px;border-radius:14px;border:0;background:var(--line);position:relative;cursor:pointer;flex:none;transition:.2s}
+.tg::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s}
+.tg.on{background:var(--leaf)}.tg.on::after{left:23px}
+.code{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--surface2);border-radius:11px;padding:10px 12px;font-family:var(--f-data);font-size:14px;word-break:break-all}
+.code span{flex:1;min-width:0;user-select:all}
+.steps{margin:6px 0 0;padding-left:20px;font-size:14px;display:flex;flex-direction:column;gap:5px}
+.steps li::marker{color:var(--leaf);font-weight:700}
+/* barra inferior */
+.nav{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(10px);border-top:1px solid var(--line);
+  padding:8px max(16px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;justify-content:center;gap:6px;z-index:5}
+.nav button{flex:1;max-width:180px;border:0;background:transparent;color:var(--mut);font:700 13px var(--f-body);padding:8px 6px;border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.nav button span{font-size:19px;line-height:1}
+.nav button.on{color:var(--leaf);background:var(--surface2)}
+.toast{visibility:hidden;position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translate(-50%,40px);opacity:0;background:var(--fg);color:var(--bg);padding:12px 18px;border-radius:12px;font-weight:700;transition:.3s;z-index:9;max-width:calc(100% - 32px)}
+.toast.show{visibility:visible;transform:translate(-50%,0);opacity:1}
+@media(max-width:560px){.ai{grid-template-columns:1fr 1fr}.ai div:last-child{grid-column:1/3}.big b{font-size:42px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<!-- ============ LOGIN ============ -->
+<div class="login" id="vLogin">
+ <div class="panel">
+  <div class="brand"><svg width="34" height="34" viewBox="0 0 30 30" aria-hidden="true"><path d="M15 27V13" stroke="var(--leaf)" stroke-width="3" stroke-linecap="round"/><path d="M15 15C8 15 5 10 5 4c6 0 10 4 10 11Z" fill="var(--leaf)"/><path d="M15 18c5 0 9-3 10-9-6 0-10 3-10 9Z" fill="var(--water)"/></svg><h1>HidroSense<small id="lSub">Cultivo automatizado</small></h1></div>
+  <h2 id="lTitle" style="font-size:20px">Entrar</h2>
+  <p class="mut" id="lTxt" style="margin:0;font-size:14px">…</p>
+  <div id="lCodeBox" class="stack" hidden>
+   <label class="f" for="lCode">Código del equipo</label>
+   <input type="text" id="lCode" placeholder="12 letras y números" autocomplete="off" spellcheck="false">
+  </div>
+  <label class="f" for="lPw">Contraseña</label>
+  <input type="password" id="lPw" autocomplete="current-password">
+  <div id="lPw2Box" class="stack" hidden><label class="f" for="lPw2">Repite la contraseña</label><input type="password" id="lPw2" autocomplete="new-password"></div>
+  <button class="btn pri" id="lBtn">Entrar</button>
+  <p class="mut" id="lErr" style="margin:0;font-size:13.5px;color:var(--bad)" hidden></p>
+ </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div class="wrap" id="vApp" hidden>
+ <div class="top">
+  <div class="brand"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path d="M15 27V13" stroke="var(--leaf)" stroke-width="3" stroke-linecap="round"/><path d="M15 15C8 15 5 10 5 4c6 0 10 4 10 11Z" fill="var(--leaf)"/><path d="M15 18c5 0 9-3 10-9-6 0-10 3-10 9Z" fill="var(--water)"/></svg><h1>HidroSense<small id="nodeName">Riego</small></h1></div>
+  <div class="right"><select id="nodeSel" aria-label="Equipo" hidden></select><div class="conn" id="conn"><i></i><span id="connTxt">Conectando…</span></div></div>
+ </div>
+
+ <!-- ---------- INICIO ---------- -->
+ <section id="tabHome" class="wrap">
+  <div class="panel" style="padding:10px">
+   <div class="head"><div class="big"><b class="num" id="pct">--%</b><span>humedad de la tierra</span></div><div class="stag" id="stag">…</div></div>
+   <div class="scene" id="scene">
+    <svg viewBox="0 0 300 220" role="img" aria-label="Planta: se marchita si la tierra está seca">
+     <g id="sun"><g class="ray"><g stroke="#ffd65a" stroke-width="3" stroke-linecap="round" opacity=".75">
+      <line x1="250" y1="12" x2="250" y2="20"/><line x1="250" y1="60" x2="250" y2="68"/><line x1="222" y1="40" x2="230" y2="40"/><line x1="270" y1="40" x2="278" y2="40"/>
+      <line x1="230" y1="20" x2="236" y2="26"/><line x1="264" y1="54" x2="270" y2="60"/><line x1="270" y1="20" x2="264" y2="26"/><line x1="236" y1="54" x2="230" y2="60"/></g></g>
+      <circle cx="250" cy="40" r="15" fill="#ffd65a"/></g>
+     <g id="moon"><circle cx="250" cy="40" r="14" fill="#e8ecff"/><circle cx="257" cy="35" r="12" fill="#1b3358"/></g>
+     <g id="rainG"><g fill="#d6dee5"><ellipse cx="70" cy="30" rx="34" ry="16"/><ellipse cx="100" cy="24" rx="26" ry="18"/><ellipse cx="125" cy="32" rx="24" ry="14"/></g>
+      <g fill="#8fd0ff"><rect class="rd" x="60" y="44" width="2" height="9" rx="1"/><rect class="rd" x="78" y="44" width="2" height="9" rx="1"/><rect class="rd" x="96" y="44" width="2" height="9" rx="1"/><rect class="rd" x="114" y="44" width="2" height="9" rx="1"/><rect class="rd" x="130" y="44" width="2" height="9" rx="1"/><rect class="rd" x="69" y="50" width="2" height="9" rx="1"/><rect class="rd" x="105" y="50" width="2" height="9" rx="1"/><rect class="rd" x="122" y="50" width="2" height="9" rx="1"/></g></g>
+     <path d="M0 118 C40 118 60 96 96 96 L112 96" stroke="#2f8f55" stroke-width="7" fill="none" stroke-linecap="round"/>
+     <rect x="108" y="91" width="14" height="10" rx="3" fill="#c9d2cc"/>
+     <g fill="#5cc0ff"><circle class="drop" cx="120" cy="106" r="3"/><circle class="drop" cx="126" cy="104" r="2.6"/><circle class="drop" cx="116" cy="108" r="2.4"/><circle class="drop" cx="123" cy="110" r="2.8"/></g>
+     <g id="plant"><g class="sway">
+      <path d="M150 168 C150 140 148 118 152 90" stroke="#2c8a4a" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <ellipse class="leaf" cx="132" cy="132" rx="20" ry="8" transform="rotate(-25 132 132)" fill="#3fc06a"/>
+      <ellipse class="leaf" cx="170" cy="122" rx="21" ry="8" transform="rotate(25 170 122)" fill="#3fc06a"/>
+      <ellipse class="leaf" cx="136" cy="104" rx="17" ry="7" transform="rotate(-35 136 104)" fill="#3fc06a"/>
+      <ellipse class="leaf" cx="166" cy="96" rx="16" ry="7" transform="rotate(30 166 96)" fill="#3fc06a"/>
+      <circle cx="152" cy="86" r="9" fill="#ff7aa8" id="flower"/><circle cx="152" cy="86" r="4" fill="#ffe27a"/>
+     </g></g>
+     <ellipse class="ripple" cx="150" cy="168" rx="34" ry="5" fill="none" stroke="#9fdcff" stroke-width="2"/>
+     <ellipse id="soilTop" cx="150" cy="168" rx="38" ry="6" fill="#6b4a2b"/>
+     <path d="M110 166 L190 166 L180 212 L120 212 Z" fill="#c4643a"/>
+     <rect x="106" y="160" width="88" height="10" rx="3" fill="#d9774a"/>
+     <rect x="176" y="150" width="4" height="22" fill="#d9c27a"/><rect x="182" y="150" width="4" height="22" fill="#d9c27a"/><rect x="174" y="145" width="14" height="7" rx="1" fill="#222"/>
+    </svg>
+   </div>
+   <div class="why"><span class="dot" id="dot"></span><span id="why">Esperando datos del equipo…</span></div>
+  </div>
+
+  <div class="banner bad" id="bWater" hidden><div><b>💧 Parece que falta agua en el estanque</b><p>Regué todos los pulsos y la tierra no se humedeció. Pausé el riego para que la bomba no trabaje en seco.</p></div><button class="btn pri" id="ackBtn">Ya llené el estanque</button></div>
+  <div class="banner warn" id="bFault" hidden><div><b>⚠ La sonda de humedad no responde</b><p>Está fuera de la tierra o desconectada. No riego en automático hasta que vuelva a medir bien.</p></div></div>
+
+  <div class="panel">
+   <div class="aiTag">✦ Inteligencia</div>
+   <div class="ai" style="margin-top:10px">
+    <div><b id="aiNext">—</b><span>Próximo riego</span></div>
+    <div><b id="aiRate">—</b><span>Ritmo de secado</span></div>
+    <div><b id="aiWx">—</b><span id="aiWxL">Pronóstico 6 h</span></div>
+   </div>
+   <p class="aiTxt" id="aiTxt">Aprendiendo de tu planta…</p>
+  </div>
+
+  <div class="panel">
+   <div class="eyebrow" style="margin-bottom:10px">Mando</div>
+   <div class="seg" role="group" aria-label="Modo"><button id="mA">🤖 Automático</button><button id="mM">👆 Manual</button></div>
+   <p class="modeTxt" id="modeTxt">…</p>
+   <div class="ctls">
+    <button class="ctl pri" id="bW3"><b>Regar 3 s</b><small id="rW3">…</small></button>
+    <button class="ctl pri" id="bW8"><b>Regar 8 s</b><small id="rW8">…</small></button>
+    <button class="ctl stop" id="bSt"><b>Detener bomba</b><small id="rSt">…</small></button>
+    <button class="ctl" id="bTe"><b>Probar relé</b><small id="rTe">…</small></button>
+   </div>
+  </div>
+
+  <div class="tiles" id="tiles"></div>
+ </section>
+
+ <!-- ---------- HISTORIAL ---------- -->
+ <section id="tabHist" class="wrap" hidden>
+  <div class="panel">
+   <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+    <div class="eyebrow">Humedad de la tierra</div>
+    <div class="tabs"><button class="on" id="tH">Última hora</button><button id="tD">7 días</button></div>
+   </div>
+   <canvas id="cv" width="720" height="180" aria-label="Gráfico de humedad"></canvas>
+  </div>
+  <div class="panel"><div class="eyebrow" style="margin-bottom:6px">Riegos</div><div class="list" id="evs"></div></div>
+  <div class="panel"><div class="eyebrow" style="margin-bottom:6px">Avisos</div><div class="list" id="alerts"></div></div>
+ </section>
+
+ <!-- ---------- AJUSTES ---------- -->
+ <section id="tabSet" class="wrap" hidden>
+  <div class="panel stack">
+   <div class="eyebrow">Riego</div>
+   <div class="set"><label for="th">Regar cuando baje de <b id="v_th"></b></label><input type="range" id="th" min="5" max="85"><small>Bajo este % la tierra se considera seca.</small></div>
+   <div class="set"><label for="ps">Duración de cada pulso <b id="v_ps"></b></label><input type="range" id="ps" min="1" max="20"><small>Con riego inteligente, este es el máximo: el equipo ajusta solo.</small></div>
+   <div class="set"><label for="sk">Espera entre pulsos <b id="v_sk"></b></label><input type="range" id="sk" min="10" max="300" step="10"><small>Deja que el agua baje antes de volver a medir.</small></div>
+   <div class="set"><label for="mp">Pulsos máximos por riego <b id="v_mp"></b></label><input type="range" id="mp" min="1" max="6"></div>
+   <div class="set"><label for="cd">Descanso después de regar <b id="v_cd"></b></label><input type="range" id="cd" min="5" max="240" step="5"></div>
+   <div class="set"><label for="md">Riegos máximos por día <b id="v_md"></b></label><input type="range" id="md" min="1" max="24"></div>
+   <div class="set"><label>Horario permitido <b id="v_h"></b></label><div style="display:flex;gap:10px"><input type="range" id="h1" min="0" max="23" aria-label="Desde"><input type="range" id="h2" min="1" max="24" aria-label="Hasta"></div></div>
+   <div class="sw"><div>Respetar horario<small>Fuera del horario no riega solo.</small></div><button class="tg" id="uh" aria-label="Respetar horario"></button></div>
+  </div>
+
+  <div class="panel stack">
+   <div class="aiTag">✦ Inteligencia</div>
+   <div class="sw" style="border-top:0;padding-top:0"><div>Riego inteligente<small>Aprende cuánto sube la humedad por segundo de bomba y calcula el pulso justo.</small></div><button class="tg" id="sm" aria-label="Riego inteligente"></button></div>
+   <div class="sw"><div>Usar pronóstico del tiempo<small>Si se espera lluvia en las próximas 6 horas, espera en vez de regar (salvo que la tierra esté muy seca).</small></div><button class="tg" id="wx" aria-label="Usar pronóstico"></button></div>
+   <div class="sw"><div>No regar si el sensor detecta lluvia<small>Solo con la placa afuera, como sensor de lluvia.</small></div><button class="tg" id="ur" aria-label="Sensor de lluvia"></button></div>
+  </div>
+
+  <div class="panel stack">
+   <div class="eyebrow">Avisos al celular</div>
+   <ol class="steps"><li>Instala la app <b>ntfy</b> (Play Store / App Store).</li><li>Toca <b>＋</b> y suscríbete a este tema secreto:</li></ol>
+   <div class="code"><span id="ntfyT">…</span><button class="btn" data-copy="ntfyT">Copiar</button></div>
+   <div class="sw" id="rcRow"><div>Permitir control desde internet<small>Si lo apagas, desde afuera solo se puede mirar. Solo se cambia aquí, en casa.</small></div><button class="tg" id="rc" aria-label="Permitir control desde internet"></button></div>
+   <div class="sw"><div>Avisar cada riego<small>Además de los avisos importantes (falta de agua, tierra muy seca, sonda).</small></div><button class="tg" id="na" aria-label="Avisar cada riego"></button></div>
+   <div class="btns"><button class="btn" id="testAl">Enviar aviso de prueba</button></div>
+  </div>
+
+  <div class="panel stack">
+   <div class="eyebrow">Equipo y acceso</div>
+   <p class="mut" style="margin:0;font-size:14px" id="remSt">…</p>
+   <div class="code"><span id="devId">…</span><button class="btn" data-copy="devId">Copiar código</button></div>
+   <div id="pwBox" class="stack">
+    <label class="f" for="pwNew">Cambiar contraseña (mínimo 8 caracteres)</label>
+    <input type="password" id="pwNew" autocomplete="new-password">
+    <div class="btns"><button class="btn" id="pwSave">Cambiar contraseña</button></div>
+   </div>
+   <div class="btns"><button class="btn bad" id="logout">Cerrar sesión</button></div>
+  </div>
+
+  <div class="panel stack">
+   <div class="sw" style="border-top:0;padding-top:0"><div>Opciones avanzadas<small>Calibración, estanque, relé y ubicación del pronóstico.</small></div><button class="tg" id="advT" aria-label="Mostrar opciones avanzadas"></button></div>
+   <div id="adv" class="stack" hidden>
+    <div><b>Calibrar sensores</b><p class="mut" style="margin:2px 0 8px;font-size:13.5px">Sonda al aire y seca → Suelo seco. En un vaso con agua → Suelo mojado. Igual con la placa.</p>
+     <div class="btns"><button class="btn" data-cal="sd">Suelo seco</button><button class="btn" data-cal="sw">Suelo mojado</button><button class="btn" data-cal="rd">Placa seca</button><button class="btn" data-cal="rw">Placa mojada</button></div>
+     <p class="num mut" style="margin:8px 0 0;font-size:12.5px" id="raw"></p></div>
+    <div class="sw"><div>Placa = sensor de estanque<small>Pon la placa "Raindrops" dentro del estanque: si queda seca, no hay agua y no riega.</small></div><button class="tg" id="tk" aria-label="Estanque"></button></div>
+    <div class="sw"><div>Relé invertido<small>Solo si la bomba hace lo contrario de lo que pides.</small></div><button class="tg" id="al" aria-label="Relé invertido"></button></div>
+    <div><b>Ubicación para el pronóstico</b>
+     <div style="display:flex;gap:8px;margin-top:6px"><input type="number" id="lat" step="0.01" aria-label="Latitud"><input type="number" id="lon" step="0.01" aria-label="Longitud"></div>
+     <div class="btns" style="margin-top:8px"><button class="btn" id="geoSave">Guardar ubicación</button></div></div>
+   </div>
+  </div>
+ </section>
+</div>
+
+<nav class="nav" id="nav" hidden>
+ <button class="on" data-tab="tabHome"><span>🌱</span>Inicio</button>
+ <button data-tab="tabHist"><span>📈</span>Historial</button>
+ <button data-tab="tabSet"><span>⚙️</span>Ajustes</button>
+</nav>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const LOCAL=/^(\d+\.){3}\d+$|\.local$/.test(location.hostname);
+const BROKER="wss://broker.emqx.io:8084/mqtt", ROOT="hidrosense/";
+let S=null,H=null,chartMode="h",cfgLoaded=false,lastMsg=0,client=null,KEY=null,lastTs=0,TOKEN="",info=null;
+let nodes=[],cur=null,badKey=0;
+
+/* ---------- utilidades ---------- */
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}}
+function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("show"),2800)}
+function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function ago(sec){if(sec<60)return "hace "+Math.max(0,Math.round(sec))+" s";if(sec<3600)return "hace "+Math.floor(sec/60)+" min";if(sec<86400)return "hace "+Math.floor(sec/3600)+" h";return "hace "+Math.floor(sec/86400)+" d"}
+function mix(a,b,t){return "rgb("+a.map((v,i)=>Math.round(v+(b[i]-v)*t)).join(",")+")"}
+function tok(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+
+/* ---------- cifrado (igual que el ESP32) ---------- */
+const enc=new TextEncoder(),dec=new TextDecoder();
+async function deriveKey(pw,id){const salt=enc.encode(pw+"|"+id);let h=new Uint8Array(await crypto.subtle.digest("SHA-256",salt));
+ const buf=new Uint8Array(32+salt.length);for(let i=1;i<5000;i++){buf.set(h,0);buf.set(salt,32);h=new Uint8Array(await crypto.subtle.digest("SHA-256",buf))}return h}
+async function deriveKey2(pw,id){const k=await crypto.subtle.importKey("raw",enc.encode(pw),"PBKDF2",false,["deriveBits"]);
+ return new Uint8Array(await crypto.subtle.deriveBits({name:"PBKDF2",hash:"SHA-256",salt:enc.encode("hidrosense|"+id),iterations:100000},k,256))}
+const importKey=raw=>crypto.subtle.importKey("raw",raw,{name:"AES-GCM"},false,["encrypt","decrypt"]);
+let KEY1=null,useLegacy=false,upgradeSent=false,lastGood=0,fails=0;
+function b64e(u){let s="";u.forEach(c=>s+=String.fromCharCode(c));return btoa(s)}
+function b64d(t){const s=atob(t);const u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u}
+async function seal(txt,k){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM",iv},k||(useLegacy&&KEY1?KEY1:KEY),enc.encode(txt)));const o=new Uint8Array(12+ct.length);o.set(iv,0);o.set(ct,12);return b64e(o)}
+async function unsealWith(k,t){const u=b64d(t);return dec.decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:u.slice(0,12)},k,u.slice(12)))}
+async function unseal(t){try{const r=await unsealWith(KEY,t);if(useLegacy){useLegacy=false;KEY1=null;if(cur&&cur.k1){delete cur.k1;saveNodes();toast("Seguridad reforzada ✓")}}return r}
+ catch(e){if(!KEY1)throw e;const r=await unsealWith(KEY1,t);useLegacy=true;if(!upgradeSent){upgradeSent=true;sendUpgrade()}return r}}
+async function sendUpgrade(){if(!client||!client.connected||!cur)return;let ts=Math.floor(Date.now()/1000);if(ts<=lastTs)ts=lastTs+1;lastTs=ts;
+ client.publish(ROOT+cur.id+"/cmd",await seal(JSON.stringify({c:"upgrade",k:cur.k,ts}),KEY1))}
+
+/* ---------- vistas ---------- */
+function showLogin(mode){ // mode: setup | local | remote
+ $("vLogin").hidden=false;$("vApp").hidden=true;$("nav").hidden=true;$("lErr").hidden=true;$("lPw").value="";$("lPw2").value="";
+ $("lCodeBox").hidden=mode!=="remote";$("lPw2Box").hidden=mode!=="setup";
+ $("lSub").textContent=info&&info.name?info.name:"Cultivo automatizado";
+ if(mode==="setup"){$("lTitle").textContent="Crea tu contraseña";$("lTxt").textContent="Es la primera vez. Esta contraseña protege el equipo en tu casa y cifra todo lo que viaja por internet. Sin ella nadie ve ni controla nada.";$("lBtn").textContent="Crear y entrar";$("lPw").autocomplete="new-password"}
+ else if(mode==="local"){$("lTitle").textContent="Entrar";$("lTxt").textContent="Escribe la contraseña de tu equipo.";$("lBtn").textContent="Entrar"}
+ else{$("lTitle").textContent=nodes.length?"Agregar equipo":"Entrar";$("lTxt").textContent="Escribe el código del equipo y su contraseña. Los datos llegan cifrados y solo este celular puede leerlos.";$("lBtn").textContent="Conectar";$("lCode").value=""}
+ $("lBtn").dataset.mode=mode;setTimeout(()=>(mode==="remote"?$("lCode"):$("lPw")).focus(),50);
+}
+function showApp(){$("vLogin").hidden=true;$("vApp").hidden=false;$("nav").hidden=false;$("pwBox").hidden=!LOCAL;$("rcRow").hidden=!LOCAL}
+function lErr(t){$("lErr").textContent=t;$("lErr").hidden=false}
+document.querySelectorAll(".nav button").forEach(b=>b.addEventListener("click",()=>{
+ document.querySelectorAll(".nav button").forEach(x=>x.classList.toggle("on",x===b));
+ ["tabHome","tabHist","tabSet"].forEach(t=>$(t).hidden=t!==b.dataset.tab);scrollTo(0,0);if(b.dataset.tab==="tabHist")draw()}));
+
+/* ---------- local ---------- */
+async function api(path,body){const r=await fetch(path,{method:body?"POST":"GET",headers:Object.assign({"Content-Type":"application/json"},TOKEN?{"X-Token":TOKEN}:{}),body:body?JSON.stringify(body):undefined});
+ if(r.status===401){TOKEN="";store("hsTok",null);showLogin("local");throw new Error("401")}return r.json()}
+async function localStart(){try{info=await (await fetch("/api/info")).json()}catch(e){lErr("No pude hablar con el equipo");return}
+ TOKEN=store("hsTok")||"";
+ if(!info.hasPw){showLogin("setup");return}
+ if(!TOKEN){showLogin("local");return}
+ enterLocal()}
+let pollT=null,histT=null;
+function enterLocal(){showApp();pollState();pollHist();clearInterval(pollT);clearInterval(histT);pollT=setInterval(pollState,1500);histT=setInterval(pollHist,30000)}
+async function pollState(){try{onState(await api("/api/state"))}catch(e){if(e.message!=="401")setConn(false,"Equipo sin respuesta")}}
+async function pollHist(){try{onHist(await api("/api/hist"))}catch(e){}}
+
+/* ---------- remoto ---------- */
+function saveNodes(){store("hsNodes",JSON.stringify(nodes.map(n=>({id:n.id,name:n.name,k:n.k,k1:n.k1}))))}
+function loadNodes(){try{nodes=JSON.parse(store("hsNodes")||"[]")}catch(e){nodes=[]}}
+function fillSel(){const s=$("nodeSel");s.hidden=LOCAL;s.innerHTML=nodes.map(n=>'<option value="'+n.id+'">'+esc(n.name||n.id)+'</option>').join("")+'<option value="+">＋ Agregar equipo</option>';if(cur)s.value=cur.id}
+async function remoteUse(n){cur=n;store("hsCur",n.id);KEY=await importKey(b64d(n.k));KEY1=n.k1?await importKey(b64d(n.k1)):null;useLegacy=false;upgradeSent=false;lastGood=Date.now();fails=0;S=null;H=null;cfgLoaded=false;badKey=0;fillSel();showApp();setConn(false,"Conectando…");
+ if(client){try{client.end(true)}catch(e){}client=null}remoteConnect()}
+function remoteConnect(){
+ if(!window.mqtt){remoteConnect.n=(remoteConnect.n||0)+1;if(remoteConnect.n>80){setConn(false,"Sin conexión a internet");return}setTimeout(remoteConnect,250);return}
+ const base=ROOT+cur.id+"/";
+ client=mqtt.connect(BROKER,{clientId:"hs-"+Math.random().toString(16).slice(2,10),reconnectPeriod:3000,connectTimeout:10000,clean:true});
+ client.on("connect",()=>{client.subscribe([base+"estado",base+"hist",base+"res",base+"online"]);setConn(false,"Esperando al equipo…")});
+ client.on("close",()=>setConn(false,"Reconectando…"));
+ client.on("message",(t,m)=>{const s=m.toString();
+  if(t.endsWith("/online")){if(s==="0")setConn(false,"Equipo desconectado");return}
+  unseal(s).then(txt=>{const j=JSON.parse(txt);badKey=0;fails=0;lastGood=Date.now();
+   if(t.endsWith("/estado")){onState(j);if(j.name&&cur.name!==j.name){cur.name=j.name;saveNodes();fillSel()}}
+   else if(t.endsWith("/hist"))onHist(j);else if(t.endsWith("/res")&&j.msg)toast(j.msg)})
+  .catch(()=>{fails++;if(fails>=3&&!S&&Date.now()-lastGood>20000){toast("La contraseña no coincide con este equipo. Vuelve a entrar.");nodes=nodes.filter(x=>x.id!==cur.id);saveNodes();if(client){client.end(true);client=null}showLogin("remote")}})});
+}
+$("nodeSel").addEventListener("change",e=>{const v=e.target.value;if(v==="+"){showLogin("remote");return}const n=nodes.find(x=>x.id===v);if(n)remoteUse(n)});
+
+/* ---------- enviar órdenes ---------- */
+async function send(obj){
+ if(LOCAL){try{const j=await api("/api/cmd",obj);toast(j.msg||"Listo");setTimeout(pollState,300);return j}catch(e){if(e.message!=="401")toast("No pude hablar con el equipo")}}
+ else if(client&&client.connected){let ts=Math.floor(Date.now()/1000);if(ts<=lastTs)ts=lastTs+1;lastTs=ts;client.publish(ROOT+cur.id+"/cmd",await seal(JSON.stringify(Object.assign({},obj,{ts}))))}
+ else toast("Sin conexión con el equipo");
+}
+
+/* ---------- login ---------- */
+$("lBtn").addEventListener("click",async()=>{const mode=$("lBtn").dataset.mode,pw=$("lPw").value;$("lErr").hidden=true;
+ if(pw.length<8){lErr("La contraseña tiene al menos 8 caracteres");return}
+ if(mode==="setup"){if(pw!==$("lPw2").value){lErr("Las contraseñas no coinciden");return}
+  const j=await (await fetch("/api/setup",{method:"POST",body:JSON.stringify({pw})})).json();if(!j.ok){lErr(j.msg);return}TOKEN=j.token;store("hsTok",TOKEN);toast("Contraseña creada ✓");enterLocal();return}
+ if(mode==="local"){$("lBtn").textContent="Verificando…";const j=await (await fetch("/api/login",{method:"POST",body:JSON.stringify({pw})})).json();$("lBtn").textContent="Entrar";
+  if(!j.ok){lErr(j.msg);return}TOKEN=j.token;store("hsTok",TOKEN);enterLocal();return}
+ const id=$("lCode").value.trim().toLowerCase();if(!/^[0-9a-f]{12}$/.test(id)){lErr("El código tiene 12 letras y números (0-9, a-f)");return}
+ if(!window.crypto||!crypto.subtle){lErr("Abre esta página con https");return}
+ $("lBtn").textContent="Protegiendo…";const raw=await deriveKey2(pw,id),old=await deriveKey(pw,id);$("lBtn").textContent="Conectar";
+ const n={id,name:"",k:b64e(raw),k1:b64e(old)};nodes=nodes.filter(x=>x.id!==id);nodes.push(n);saveNodes();remoteUse(n);
+});
+["lPw","lPw2","lCode"].forEach(i=>$(i).addEventListener("keydown",e=>{if(e.key==="Enter")$("lBtn").click()}));
+
+/* ---------- estado ---------- */
+function setConn(live,txt){$("conn").className="conn"+(live?" live":"");$("connTxt").textContent=txt}
+setInterval(()=>{if(!S)return;const age=(Date.now()-lastMsg)/1000;if(age<25)setConn(true,(LOCAL?"En casa":"En vivo")+" · "+S.time);else setConn(false,"Sin datos "+ago(age))},2000);
+function sensor(k){return (S.sens||[]).find(x=>x.k===k)}
+function onState(d){S=d;lastMsg=Date.now();
+ const soil=sensor("soil"),s=soil?Math.round(soil.v):0,sc=$("scene");
+ $("nodeName").textContent=d.name||"Riego";$("devId").textContent=d.id;$("ntfyT").textContent=d.ntfy||"…";
+ sc.classList.toggle("pumping",d.state==1);sc.classList.toggle("rain",(!d.cfg.tk&&(sensor("rain")||{v:0}).v>25)||(d.ai&&d.ai.wx&&d.ai.wx.p>=70));sc.classList.toggle("night",!!d.night);
+ const t=Math.min(1,s/Math.max(10,d.cfg.th+10));
+ $("plant").style.transform="rotate("+((1-t)*28)+"deg) scaleY("+(0.82+0.18*t)+")";
+ document.querySelectorAll(".leaf").forEach(l=>l.setAttribute("fill",mix([196,170,70],[63,192,106],t)));
+ $("flower").setAttribute("fill",mix([150,110,110],[255,122,168],t));
+ $("soilTop").setAttribute("fill",mix([150,112,70],[60,38,20],s/100));
+ $("pct").textContent=d.fault?"⚠":s+"%";
+ const st=["En espera","Regando · "+d.left+" s","Absorbiendo agua","Descansando"][d.state];
+ $("stag").textContent=d.water?"Sin agua":(d.fault?"Revisa la sonda":(d.state==1?"💧 "+st:st));
+ $("stag").className="stag"+(d.water?" r":d.fault?" y":d.state==1?" w":"");
+ $("why").textContent=d.why;$("dot").className="dot"+(d.state==1?" w":(d.water?" r":(d.fault||!d.auto?" y":"")));
+ $("bWater").hidden=!d.water;$("bFault").hidden=!d.fault||d.water;
+ // inteligencia
+ const ai=d.ai||{};
+ $("aiNext").textContent=d.state==1?"Ahora":(ai.next>=0?(ai.next<1?"< 1 h":"~"+Math.round(ai.next)+" h"):"—");
+ $("aiRate").textContent=ai.rate>0?ai.rate.toFixed(1)+" %/h":"—";
+ if(ai.wx&&ai.wx.ok){$("aiWx").textContent=ai.wx.p+"%";$("aiWxL").textContent="Lluvia próx. 6 h · "+ai.wx.mm.toFixed(1)+" mm"}else{$("aiWx").textContent="—";$("aiWxL").textContent="Pronóstico 6 h"}
+ $("aiTxt").textContent=ai.txt||"Aprendiendo de tu planta…";
+ // modo y botones
+ $("mA").className=d.auto?"on":"";$("mM").className=d.auto?"":"on";$("mA").setAttribute("aria-pressed",d.auto);$("mM").setAttribute("aria-pressed",!d.auto);
+ $("modeTxt").textContent=d.auto?"El equipo decide solo: riega cuando la tierra baja de "+d.cfg.th+"%, por pulsos, mirando el pronóstico, el horario y el estanque. Los botones de la bomba quedan bloqueados para no mezclarse con el riego automático.":"Tú controlas la bomba. El equipo no riega solo, pero igual te avisa si la tierra está muy seca.";
+ const c=Object.assign({},d.can);
+ const ro=!LOCAL&&!d.cfg.rc;
+ if(ro){const r="Solo lectura: el control desde internet está desactivado. Se activa en la app de tu casa.";c.w=c.s=c.t=false;c.wr=c.sr=c.tr=r}
+ $("mA").disabled=ro;$("mM").disabled=ro;
+ btn("bW3","rW3",c.w,c.w?"Enciende la bomba 3 s (≈75 ml) y se apaga sola.":c.wr);
+ btn("bW8","rW8",c.w,c.w?"Enciende la bomba 8 s (≈200 ml) y se apaga sola.":c.wr);
+ btn("bSt","rSt",c.s,c.s?"Apaga la bomba ahora mismo.":c.sr);
+ btn("bTe","rTe",c.t,c.t?"Hace 3 clics al relé para comprobar que responde.":c.tr);
+ // sensores genéricos (sirve para futuros nodos: pH, EC, temperatura, nivel…)
+ const tiles=(d.sens||[]).map(x=>tile(x.v==null?"—":(x.k==="tank"?(x.v>40?"Con agua":"Vacío"):(Math.round(x.v*10)/10)+(x.u||"")),x.n,x.u==="%"?x.v:null,x.k==="rain"||x.k==="tank"?"var(--water)":"var(--leaf)"));
+ tiles.push(tile(d.today.n,"Riegos hoy · ≈"+(d.today.ml>=1000?(d.today.ml/1000).toFixed(1)+" L":Math.round(d.today.ml)+" ml")));
+ tiles.push(tile(d.rssi+" dBm","Señal WiFi · "+(d.rssi>-60?"buena":d.rssi>-72?"media":"débil")));
+ $("tiles").innerHTML=tiles.join("");
+ // ajustes
+ $("raw").textContent="Lecturas: suelo "+(soil?soil.raw:"-")+" (seco "+d.cal.sd+" / mojado "+d.cal.sw+") · placa "+((sensor("rain")||sensor("tank")||{}).raw??"-")+" (seca "+d.cal.rd+" / mojada "+d.cal.rw+")";
+ $("remSt").textContent=LOCAL?(d.mq?"✅ Acceso desde afuera activo: usa este código y tu contraseña en la página de internet.":"⏳ Conectando al servidor para el acceso desde afuera…"):"Conectado de forma cifrada a "+(d.name||"tu equipo")+".";
+ if(!cfgLoaded){loadCfg(d.cfg);cfgLoaded=true}
+ if(H&&!$("tabHist").hidden)draw();
+}
+function tile(v,label,pct,color){return '<div class="tile"><b>'+esc(v)+'</b><span>'+esc(label)+'</span>'+(pct!=null?'<div class="bar"><i style="width:'+Math.max(0,Math.min(100,pct))+'%;background:'+(color||"var(--leaf)")+'"></i></div>':"")+'</div>'}
+function btn(id,rid,ok,txt){$(id).disabled=!ok;$(rid).textContent=txt||""}
+function onHist(h){H=h;const now=S?S.ts:Date.now()/1000;
+ $("evs").innerHTML=(h.evs&&h.evs.length)?h.evs.map(e=>'<div class="row"><span>'+(e.m?"👆 Manual":"🤖 Automático · pulso "+e.p)+" · "+e.s+' s <small>tierra '+e.h0+'%'+(e.h1>=0?" → "+e.h1+"%":"")+'</small></span><small>'+(e.t>1e9?(e.c+" · "+ago(now-e.t)):e.c)+'</small></div>').join(""):'<div class="empty">Todavía no hay riegos registrados.</div>';
+ $("alerts").innerHTML=(h.al&&h.al.length)?h.al.map(a=>'<div class="row"><span><b>'+esc(a.title)+'</b><br><small style="white-space:normal">'+esc(a.msg)+'</small></span><small>'+(a.t>1e9?a.c+" · "+ago(now-a.t):a.c)+'</small></div>').join(""):'<div class="empty">Sin avisos. Cuando falte agua, la tierra esté muy seca o falle la sonda, aparece aquí y en tu celular.</div>';
+ if(!$("tabHist").hidden)draw()}
+function draw(){if(!H)return;const c=$("cv"),x=c.getContext("2d"),W=c.width,Hh=c.height,P=26,L=38;x.clearRect(0,0,W,Hh);
+ const line=tok("--line"),mut=tok("--mut"),leaf=tok("--leaf"),warn=tok("--warn");
+ x.font="12px "+tok("--f-data");x.fillStyle=mut;x.strokeStyle=line;x.lineWidth=1;
+ [0,25,50,75,100].forEach(v=>{const y=Hh-P-(v/100)*(Hh-P-10);x.beginPath();x.moveTo(L,y);x.lineTo(W,y);x.stroke();x.fillText(v+"%",0,y+4)});
+ const th=S?S.cfg.th:35,ty=Hh-P-(th/100)*(Hh-P-10);x.setLineDash([6,5]);x.strokeStyle=warn;x.beginPath();x.moveTo(L,ty);x.lineTo(W,ty);x.stroke();x.setLineDash([]);
+ x.fillStyle=warn;x.fillText("regar bajo "+th+"%",W-118,ty-6);
+ const arr=chartMode=="h"?(H.h1||[]):(H.d7||[]),n=chartMode=="h"?120:168;x.fillStyle=mut;
+ if(chartMode=="h")["-60 min","-30 min","ahora"].forEach((l,i)=>x.fillText(l,L+i*(W-L-44)/2,Hh-6));
+ else for(let d=6;d>=0;d--){const px=L+(n-1-d*24-12)/(n-1)*(W-L);const dt=new Date(((H.d7end||0)-d*86400)*1000);x.fillText(["dom","lun","mar","mié","jue","vie","sáb"][dt.getDay()],px-10,Hh-6)}
+ const pts=[];arr.forEach((v,i)=>{if(v>=0)pts.push([L+(i+(n-arr.length))/(n-1)*(W-L),Hh-P-(v/100)*(Hh-P-10)])});
+ if(pts.length<2){x.fillStyle=mut;x.fillText(chartMode=="h"?"Juntando datos… (1 punto cada 30 s)":"Juntando datos… (1 punto por hora)",W/2-130,Hh/2);return}
+ const g=x.createLinearGradient(0,0,0,Hh);g.addColorStop(0,leaf);g.addColorStop(1,"transparent");
+ x.beginPath();pts.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.strokeStyle=leaf;x.lineWidth=2.5;x.stroke();
+ x.lineTo(pts[pts.length-1][0],Hh-P);x.lineTo(pts[0][0],Hh-P);x.closePath();x.globalAlpha=.18;x.fillStyle=g;x.fill();x.globalAlpha=1;
+ const e=pts[pts.length-1];x.beginPath();x.arc(e[0]-3,e[1],4.5,0,7);x.fillStyle=leaf;x.fill()}
+
+/* ---------- ajustes ---------- */
+const U={th:"%",ps:" s",sk:" s",mp:"",cd:" min",md:""},TG=["uh","tk","ur","na","al","sm","wx","rc"];
+function labels(){for(const k in U)$("v_"+k).textContent=$(k).value+U[k];$("v_h").textContent=$("h1").value+":00 – "+$("h2").value+":00"}
+function loadCfg(c){Object.keys(U).concat(["h1","h2"]).forEach(k=>$(k).value=c[k]);TG.forEach(k=>{$(k).classList.toggle("on",!!c[k]);$(k).setAttribute("aria-pressed",!!c[k])});$("lat").value=c.lat;$("lon").value=c.lon;labels()}
+Object.keys(U).concat(["h1","h2"]).forEach(k=>{$(k).addEventListener("input",labels);$(k).addEventListener("change",()=>send({c:"cfg",[k]:+$(k).value}))});
+TG.forEach(k=>$(k).addEventListener("click",()=>{const on=!$(k).classList.contains("on");$(k).classList.toggle("on",on);$(k).setAttribute("aria-pressed",on);send({c:"cfg",[k]:on?1:0})}));
+$("advT").addEventListener("click",()=>{const on=!$("advT").classList.contains("on");$("advT").classList.toggle("on",on);$("adv").hidden=!on});
+$("geoSave").onclick=()=>send({c:"cfg",lat:Math.round(+$("lat").value*100),lon:Math.round(+$("lon").value*100)});
+document.querySelectorAll("[data-cal]").forEach(b=>b.addEventListener("click",()=>send({c:"cal",k:b.dataset.cal})));
+document.querySelectorAll("[data-copy]").forEach(b=>b.addEventListener("click",()=>{const t=$(b.dataset.copy).textContent;try{navigator.clipboard.writeText(t).then(()=>toast("Copiado ✓"),()=>sel(b.dataset.copy))}catch(e){sel(b.dataset.copy)}}));
+function sel(id){const r=document.createRange();r.selectNodeContents($(id));const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Texto seleccionado: cópialo")}
+
+/* ---------- acciones ---------- */
+$("mA").onclick=()=>send({c:"mode",a:1});$("mM").onclick=()=>send({c:"mode",a:0});
+$("bW3").onclick=()=>send({c:"water",s:3});$("bW8").onclick=()=>send({c:"water",s:8});
+$("bSt").onclick=()=>send({c:"stop"});$("bTe").onclick=()=>send({c:"test"});
+$("ackBtn").onclick=()=>send({c:"ack"});$("testAl").onclick=()=>send({c:"testalert"});
+$("pwSave").onclick=async()=>{const v=$("pwNew").value;if(v.length<8){toast("Mínimo 8 caracteres");return}const j=await send({c:"setpw",pw:v});$("pwNew").value="";if(j&&j.ok){TOKEN="";store("hsTok",null);showLogin("local")}};
+$("logout").onclick=()=>{if(LOCAL){fetch("/api/logout",{method:"POST",headers:{"X-Token":TOKEN}}).catch(()=>{});TOKEN="";store("hsTok",null);clearInterval(pollT);clearInterval(histT);showLogin("local")}
+ else{nodes=nodes.filter(x=>!cur||x.id!==cur.id);saveNodes();if(client){client.end(true);client=null}cur=null;if(nodes.length)remoteUse(nodes[0]);else showLogin("remote")}};
+$("tH").onclick=()=>{chartMode="h";$("tH").className="on";$("tD").className="";draw()};
+$("tD").onclick=()=>{chartMode="d";$("tD").className="on";$("tH").className="";draw()};
+addEventListener("resize",draw);
+
+/* ---------- arranque ---------- */
+if(LOCAL)localStart();
+else{loadNodes();const want=store("hsCur");const n=nodes.find(x=>x.id===want)||nodes[0];if(n)remoteUse(n);else showLogin("remote")}
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js" integrity="sha384-u4uqeACkFcoKl57rBQJHVGDd1pqhW4w8X3WjTu1ZksPdxoLqdt34jpoNkJisE25W" crossorigin="anonymous" defer></script>
